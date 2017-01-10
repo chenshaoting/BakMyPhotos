@@ -8,11 +8,13 @@
 #this program can deal with main stream photograph files, by its extension name.
 #this program can avoid duplicated files to be bakcuped twice or more.
 #Now it only support my 1T mobile disk and linux like system.
-import os,sys,time,hashlib
 
-root= '/Users/chenshaoting/Pictures/金山安全/'                            #root is the start directory of the scan , '/Users/chenshaoting/Pictures'
+#There are some deficit 
+import os,sys,time,hashlib,datetime
+
+root= '/Users/chenshaoting/'                            #root is the start directory of the scan , '/Users/chenshaoting/Pictures'
 bakDevice='/Volumes/1T'                        #here you should assign a device to store ALL your photos, mine is 1T.
-exceptDir=[]                          #exceptDir is the directories which you don't want to scan
+exceptDir=['/Users/chenshaoting/Public','/Users/chenshaoting/AndroidStudioProjects','/Users/chenshaoting/Kanbox','/Users/chenshaoting/PycharmProjects','/Users/chenshaoting/Applications','/Users/chenshaoting/Library','/Users/chenshaoting/Creative Cloud Files','/Users/chenshaoting/Movies','/Users/chenshaoting/StuffIt','/Users/chenshaoting/Music','/Users/chenshaoting/VirtualBox VMs','/Users/chenshaoting/百度云同步盘',]                          #exceptDir is the directories which you don't want to scan
 #recordList=[]                          #recordList=['/Users/chenshaoting/Pictures/金山安全/营业执照2015.jpg1922690', '/Users/chenshaoting/Pictures/金山安全/营业执照2015－盖章.jpg1137577']
                                     #recordlist is the already backed file list, which should not be backuped again.  compared by filename and file size exactly.
 filesFoundThisTime=0
@@ -30,7 +32,6 @@ def startup():
         handleDirs(root)                        #start to scan .
     else:
         print('Backup Device is not mounted yet, please mount 1T first.')
-        endup()
         sys.exit(0)
     return
 
@@ -50,10 +51,17 @@ def loadMd5List():
 def copyFiles(string):
     global backupFilesTotalSize,tempList,toBeCopiedMd5List
     filename=os.path.split(string)[1]
-    filename2='/Volumes/1T/MYAUTOBAK/'+filename
+
+    yearOfFile=datetime.datetime.fromtimestamp(os.path.getctime(string)).strftime('%Y')                     #acquire year of file as a string
+    dayOfFile=datetime.datetime.fromtimestamp(os.path.getctime(string)).strftime('%Y%m%d')
+    if not os.path.exists(os.sep+'Volumes'+os.sep+'1T'+os.sep+'MYAUTOBAK'+os.sep+yearOfFile):
+        os.mkdir(os.sep+'Volumes'+os.sep+'1T'+os.sep+'MYAUTOBAK'+os.sep+yearOfFile)
+    if not os.path.exists(os.sep+'Volumes'+os.sep+'1T'+os.sep+'MYAUTOBAK'+os.sep+yearOfFile+os.sep+dayOfFile):
+        os.mkdir(os.sep+'Volumes'+os.sep+'1T'+os.sep+'MYAUTOBAK'+os.sep+yearOfFile+os.sep+dayOfFile)
+    filename2=os.sep+'Volumes'+os.sep+'1T'+os.sep+'MYAUTOBAK'+os.sep+yearOfFile+os.sep+dayOfFile+os.sep+filename
     os.system ("cp %s %s" % (string, filename2))
     if os.path.exists(filename2):
-
+        backupFilesTotalSize=backupFilesTotalSize+os.path.getsize(string)
         print (string,'copied')
     else:
         print('DOES NOT COPIED')
@@ -85,20 +93,20 @@ def handleFiles( str):              #if scanned a file ,it will be handled here.
                 elif '.nef' in fileExtName or  '.NEF' in fileExtName:
                                 backupTo1T(str)
                                                                         #print (str, " is a NIKKON RAW file!")
-                elif '.jpg' in fileExtName or  '.JPG' in fileExtName:
+                #elif '.jpg' in fileExtName or  '.JPG' in fileExtName:
                                 backupTo1T(str)
                                                                          #print (str, " is a JPEG file!")
-                elif '.jpeg' in fileExtName or  '.JPEG' in fileExtName:
+                #elif '.jpeg' in fileExtName or  '.JPEG' in fileExtName:
                                 backupTo1T(str)
                                                                               #print (str, " is a JPEG file!")
-                elif '.png' in fileExtName or  '.PNG' in fileExtName:
+                #elif '.png' in fileExtName or  '.PNG' in fileExtName:
                                 backupTo1T(str)
                                                                                #print (str, " is a PNG file!")
                 elif '.tif' in fileExtName or  '.TIF' in fileExtName:
                                 backupTo1T(str)
                                                                              #print (str, " is a TIFF file!")
                 else:
-                                print (str, 'is an unknown file which wont\'t be backup')
+                                print (fileExtName, 'is NOT the kind of file i want to backup')
                 return 
 
 def handleDirs(str):        # this is the main module to scan files.
@@ -217,7 +225,7 @@ def endup():
 
     print ('%d files  has been found this time' %filesFoundThisTime)            #congratulations, it's done here.
     print ('%d bytes backkuped this time---------All Done! ' %backupFilesTotalSize)
-    print (toBeCopiedMd5List,tempList)
+    #print (toBeCopiedMd5List,tempList)
 
 
 
